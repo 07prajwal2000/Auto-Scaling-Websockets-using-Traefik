@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>WSS Server</title>
+</head>
+<body>
+    <div>
+        <input type="text" id="server-id" placeholder="Server ID to connect">
+        <button onclick="connect()">Connect to server</button>
+    </div>
+    <h2>user id: <span id="userid"></span></h2>
+    <button onclick="getClients()">Get clients</button>
+    <div>
+        <input placeholder="Sender ID" type="text" id="senderid">
+        <input placeholder="Message" type="text" id="msg">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+    <ul id="clients"></ul>
+    <table>
+        <thead>
+            <th>Sender</th>
+            <th>Message</th>
+        </thead>
+        <tbody id="msgs">
+            
+        </tbody>
+    </table>
+</body>
+</html>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.4/socket.io.min.js"></script>
+<script>
+    const client = io({
+        autoConnect: false,
+        path: '/ws'
+    });
+    const clientsList = document.getElementById('clients');
+    const msgList = document.getElementById('msgs');
+
+    client.on("connect", () => {
+        const id = client.id;
+        document.getElementById('userid').innerHTML = id;
+        console.log('connected to server', id);
+    });
+
+    client.on('recieve-clients', clients => {
+        let htmlData = '';
+        Object.keys(clients).forEach(x => {
+            const isMe = client.id == x;
+            if (isMe) return;
+            htmlData += `<li>${x}</li>`;
+        });
+        clientsList.innerHTML = htmlData;
+    });
+
+    client.on('revieve-msg', (sender, msg) => {
+        console.log("Message recieved from: ", sender, '\nMsg: ', msg);
+        msgList.innerHTML += `<tr>
+                <td>${sender}</td>
+                <td>${msg}</td>
+            </tr>`;
+    });
+    
+    function getClients() {
+        client.emit("get-clients");
+    }
+
+    function connect() {
+        const serverId = document.getElementById('server-id').value;
+        document.cookie = `ws-session=${serverId};expires=session;path=/;`;
+        console.log(serverId); 
+        client.connect();
+    }
+
+    function sendMessage() {
+        const userId = document.getElementById('senderid').value;
+        const msg = document.getElementById('msg').value;
+        document.getElementById('msg').value = '';
+        client.emit('send-msg', userId, msg);
+    }
+</script>
