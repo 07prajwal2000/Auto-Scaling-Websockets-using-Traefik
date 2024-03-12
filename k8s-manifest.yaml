@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nodechatapp
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  node-chat-app
+  namespace: nodechatapp
+  labels:
+    app:  node-chat-app
+spec:
+  selector:
+    matchLabels:
+      app: node-chat-app
+  replicas: 5
+  template:
+    metadata:
+      labels:
+        app:  node-chat-app
+    spec:
+      containers:
+      - name:  node-chat-app
+        image:  manu6366/distributed-node-chat-app
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 200m
+            memory: 150Mi
+        ports:
+        - containerPort:  3000
+          name:  node-chat-app
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-chat-app-svc
+  namespace: nodechatapp
+  annotations:
+    traefik.ingress.kubernetes.io/service.sticky.cookie: "true"
+    traefik.ingress.kubernetes.io/service.sticky.cookie.name: "ws-session"
+spec:
+  selector:
+    app: node-chat-app
+  ports:
+  - name: node-chat-app-port
+    protocol: TCP
+    port: 3000
+    targetPort: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: chat-ingress
+  namespace: nodechatapp
+spec:
+  rules:
+  - host: chat.localhost
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: "node-chat-app-svc"
+            port:
+              number: 3000
