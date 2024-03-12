@@ -12,14 +12,6 @@ Uses docker-compose file for spawning containers.
 
 You can programmatically generate hash based on IP. To get IP's you can use Traefik's management/admin API to get all the list of connected servers and use hashing package, there are packages available for `FNV1A64` algorithm for NodeJs. I also made a demo available in github, [check it out if you find it interesting](https://github.com/07prajwal2000/High-Availability-With-Kubernetes/blob/main/traefik-hash-finder-node/index.js).
 
-## For more Advanced/Scaling millions of connections you can use Traefik Clustering or Kubernetes with Traefik as ingress controller.
-ℹ️. Make sure you have Traefik Ingress controller installed. If not, then install using helm charts. 
-- Add Traefik helm repo: `helm repo add traefik https://traefik.github.io/charts`.
-- Install: `helm install traefik traefik/traefik`.
-- Check Traefik pod is running in `default` namespace.
-
-I provided an example [K8s Manifest file](./k8s-manifest.yaml). Just deploy using the command `kubectl apply -f k8s-manifest.yaml`. To cleanup just run `kubectl delete -f k8s-manifest.yaml`.
-
 ### Example hash table
 ```text
 http://10.1.0.38:3000 - 7e4492d358f38d47
@@ -36,6 +28,17 @@ Application has 3 routes
 I successfully able to load-balance and connect to any container using hash value with sticky session. Here no need for Redis server to send message from one server to other, as your application is redirecting the user's request to specific server (But you need to manage where the user should be routed and how many connections can a server handle).
 
 I made this research specifically for websocket based multiplayer games.
+
+## For more Advanced/Scaling millions of connections you can use Traefik Clustering or Kubernetes with Traefik as ingress controller.
+ℹ️. Make sure you have Traefik Ingress controller installed. If not, then install using helm charts. 
+- Add Traefik helm repo: `helm repo add traefik https://traefik.github.io/charts`.
+- Install: `helm install traefik traefik/traefik`.
+- Check Traefik pod is running in `default` namespace.
+
+I provided an example [K8s Manifest file](./k8s-manifest.yaml). Just deploy using the command `kubectl apply -f k8s-manifest.yaml`. To cleanup just run `kubectl delete -f k8s-manifest.yaml`.
+
+## K8s Demo Video
+https://github.com/07prajwal2000/Auto-Scaling-Websockets-using-Traefik/assets/54446909/2a91c60f-328b-4cfd-9120-8045bdcb6036
 
 ## There are many Loadbalancers available, for example
 - HA Proxy
